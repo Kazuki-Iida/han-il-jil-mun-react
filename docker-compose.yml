@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  react-blog: #サービス名
+    build: .
+    volumes: #バインドマウント
+      - ./:/usr/src/app
+    command: npm start
+    ports:
+      - "3000:3000"
+  # https-portal3000:
+  #   image: steveltn/https-portal:1
+  #   ports:
+  #     - '3443:443'
+  #   environment:
+  #     STAGE: local
+  #     DOMAINS: 'localhost -> http://host.docker.internal:3000'
+  #     chrome: //flags/#allow-insecure-localhost
+
