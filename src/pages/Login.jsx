@@ -1,9 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from "./contexts/AuthContext"
+import GuestMiddleware from './Middlewares/GuestMiddleware'
 
 const Login = () => {
   const navigate = useNavigate();
+  const { getCurrentUser, hashPassword, setCookie, setSessionIdAtLogin, validateEmail, validatePassword } = useAuth()
+  const [warnigBlank, setWarnigBlank] = useState(false)
 
   const [formData, setFormData] = useState({
     email:'',
@@ -20,94 +23,84 @@ const Login = () => {
     email:'',
     password:''
   })
-  const validateFormData = (e) => {
-    const key = e.target.name;
-    const value = e.target.value;
-    switch (key){
+
+  const checkBlank = () => {
+    if (formData.email == ''
+    || formData.password == ''
+    ) {
+      setWarnigBlank(true)
+      return true
+    } else {
+      setWarnigBlank(false)
+      return false
+    }
+  }
+
+  const executeValidation = (e) => {
+    const value = e.target.value
+    switch (e.target.name){
       case 'email':
-        const emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[A-Za-z]+$/;
-        if (!emailRegex.test(value)) {
-          setValidationMessage({
-            ...validationMessage,
-            email: '※有効なメールアドレスを入力してください。'
-          });
-        } else {
-          setValidationMessage({
-            ...validationMessage,
-            email: ''
-          });
-        }
+        setValidationMessage({
+          ...validationMessage,
+          email: validateEmail(value)
+        })
         break;
       case 'password':
-        if (value == '') {
-          setValidationMessage({
-            ...validationMessage,
-            password: '※パスワードを入力してください。'
-          });
-        } else {
-          setValidationMessage({
-            ...validationMessage,
-            password: ''
-          });
-        }
+        setValidationMessage({
+          ...validationMessage,
+          password: validatePassword(value)
+        })
         break;
     }
   }
 
-  const { setCookie, setSessionIdAtLogin, hashPassword } = useAuth()
-  const sendForm = async (e) => {
+  const preSendForm = (e) => {
     e.preventDefault()
-    if (formData.email == '') {
-      setValidationMessage({
-        ...validationMessage,
-        email: '※有効なメールアドレスを入力してください。'
-      });
-      // ここ違う
-      validationMessage.email = '※有効なメールアドレスを入力してください。';
-    }
-    if (formData.password == '') {
-      setValidationMessage({
-        ...validationMessage,
-        password: '※パスワードを入力してください。'
-      });
-      // ここ違う
-      validationMessage.password = '※パスワードを入力してください。';
-    }
-    if (validationMessage.email == '' && validationMessage.password == '') {
-      const response = await fetch('http://127.0.0.1:8080/login', {
-        method: 'POST',
-        headers:{'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          ...formData,
-          password: hashPassword(formData.password)
-        })
-      })
-      if (response.ok) {
-        const res = await response.json()
-        // sessionStorage.setItem("session_id", res.session_id);//こっちはセッションストレージに保存するコード
-        setCookie("session_id", res.session_id)//こっちはcookieに保存するコード
-        setSessionIdAtLogin(res.session_id)
-        navigate('/')
-      } else if (response.status == 401) {
-        setValidationMessage({
-          ...validationMessage,
-          password: '※パスワードが間違っています。'
-        });
-      } else if (response.status == 404) {
-        setValidationMessage({
-          ...validationMessage,
-          email: 'ユーザーが見つかりません。'
-        });
+    if(checkBlank()) {
+     return
+    }else {
+      if (validationMessage.email == ''
+      && validationMessage.password == '') {
+        sendForm()
       }
     }
   }
+
+  const sendForm = async (e) => {
+    const response = await fetch('http://127.0.0.1:8080/login', {
+      method: 'POST',
+      headers:{'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        ...formData,
+        password: hashPassword(formData.password)
+      })
+    })
+    if (response.ok) {
+      const res = await response.json()
+      // sessionStorage.setItem("session_id", res.session_id);//こっちはセッションストレージに保存するコード
+      setCookie("session_id", res.session_id)//こっちはcookieに保存するコード
+      setSessionIdAtLogin(res.session_id)
+      navigate('/')
+    } else if (response.status == 401) {
+      setValidationMessage({
+        ...validationMessage,
+        password: '※パスワードが間違っています。'
+      });
+    } else if (response.status == 404) {
+      setValidationMessage({
+        ...validationMessage,
+        email: 'ユーザーが見つかりません。'
+      });
+    }
+  }
+  
   return (
     <>
       <div className="login-wrapper">
         <div className="authentication-logo-wrapper">
           <img className="authentication-logo-image" src="./han-il-jil-mun_logo.PNG" alt="application logo" />
         </div>
-        <form onSubmit={sendForm}>
+        <form onSubmit={preSendForm}>
           <div className={validationMessage.email == ''  ? 'input-text-content' : 'input-text-content-error'}>
             <input
               type="text"
@@ -116,7 +109,7 @@ const Login = () => {
               placeholder="メールアドレス"
               value={formData.email}
               onChange={handleFormData}
-              onBlur={validateFormData}
+              onBlur={executeValidation}
             />
             {validationMessage.email != ''  &&
               <p className='validation-message'>{validationMessage.email}</p>
@@ -130,13 +123,14 @@ const Login = () => {
               placeholder="パスワード"
               value={formData.password}
               onChange={handleFormData}
-              onBlur={validateFormData}
+              onBlur={executeValidation}
             />
             {validationMessage.password != ''  &&
               <p className='validation-message'>{validationMessage.password}</p>
             }
           </div>
           <button type="submit" className="submit-button">送信</button>
+          {warnigBlank && <p className='validation-message'>※全てのフォームを入力してください。</p>}
         </form>
       </div>
     </>
