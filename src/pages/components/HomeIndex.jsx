@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useCookies } from 'react-cookie';
-import Post from './Post';
+import { useEffect, useState } from 'react'
+import Post from './Post'
 
 const HomeIndex = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState([])
 
   useEffect(() => {
     fetch('http://127.0.0.1:8080/posts/', {
@@ -13,9 +12,9 @@ const HomeIndex = () => {
     .then(data => setPosts(data))
     .catch(error => {
       console.log("失敗しました");
-  });
-  },[]);
-
+  })
+  },[])
+  
   return (
     <>
       <div className="home-index">
@@ -28,4 +27,4 @@ const HomeIndex = () => {
   )
 }
 
-export default HomeIndex;
+export default HomeIndex
