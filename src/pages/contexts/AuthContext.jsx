@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from "react"
 import { useCookies } from 'react-cookie'
+import { useNavigate } from 'react-router-dom'
 import CryptoJS from "crypto-js"
 
 const AuthContext = createContext()
@@ -12,32 +13,13 @@ const AuthProvider = ({ children }) => {
   const [cookies, defaultSetCookie, removeCookie] = useCookies([''])
   const [currentUser, setCurrentUser] = useState()
   const [sessionIdAtLogin, setSessionIdAtLogin] = useState()
-
-  const fetchCurrentUser = () => {
-    if (!currentUser) {
-      getCurrentUser()
-    }
-    return currentUser
-  }
+  const navigate = useNavigate();
 
   const getCurrentUser = async () => {
-    if (sessionIdAtLogin) {
+    if (sessionIdAtLogin || cookies["session_id"]) {
       const response = await fetch('http://127.0.0.1:8080/users/current/', {
         headers: {
-          session_id: sessionIdAtLogin
-        },
-        method: 'GET',
-      })
-      if (response.ok && response.status == 200) {
-        const data = await response.json()
-        setCurrentUser(data)
-      } else {
-        console.log("ログインユーザーの取得に失敗しました");
-      }
-    } else if (cookies["session_id"]) {
-      const response = await fetch('http://127.0.0.1:8080/users/current/', {
-        headers: {
-          session_id: cookies["session_id"]
+          session_id: sessionIdAtLogin || cookies["session_id"]
         },
         method: 'GET',
       })
@@ -69,6 +51,24 @@ const AuthProvider = ({ children }) => {
       return data.isauth
     } else {
       return false
+    }
+  }
+
+  const logout = async () => {
+    if (sessionIdAtLogin || cookies["session_id"]) {
+     const response = await fetch('http://127.0.0.1:8080/logout', {
+      headers: {
+        session_id: sessionIdAtLogin || cookies["session_id"],//あとはテストして！！！
+      },
+      method: 'GET',
+      })
+      if (response.ok) {
+        removeCookie("session_id")
+        setSessionIdAtLogin(undefined)
+        navigate('/')
+      } else {
+        console.log("ログアウトに失敗しました")
+      }
     }
   }
 
@@ -114,10 +114,10 @@ const AuthProvider = ({ children }) => {
 
   const value = {
     currentUser,
-    fetchCurrentUser,
     getCurrentUser,
     hashPassword,
     isAuth,
+    logout,
     setCookie,
     setSessionIdAtLogin,
     validateConfirmPassword,
