@@ -1,6 +1,6 @@
-import HomeRanking from './components/HomeRanking';
-import HomeIndex from './components/HomeIndex';
-import Header from './components/Header';
+import HomeRanking from './components/HomeRanking'
+import HomeIndex from './components/HomeIndex'
+import Header from './components/Header'
 
 const Home = () => {
 	return (

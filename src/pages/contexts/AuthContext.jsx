@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { useCookies } from 'react-cookie'
 import { useNavigate } from 'react-router-dom'
 import CryptoJS from "crypto-js"
@@ -11,15 +11,20 @@ export const useAuth = () => {
 
 const AuthProvider = ({ children }) => {
   const [cookies, defaultSetCookie, removeCookie] = useCookies([''])
+  const [isAuth, setIsAuth] = useState(false)
   const [currentUser, setCurrentUser] = useState()
-  const [sessionIdAtLogin, setSessionIdAtLogin] = useState()
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const isAuthInCookie = cookies["is_auth"]
+    isAuthInCookie == 'yes' && setIsAuth(true)
+  }, [])
 
   const getCurrentUser = async () => {
-    if (sessionIdAtLogin || cookies["session_id"]) {
+    if (cookies["session_id"]) {
       const response = await fetch('http://127.0.0.1:8080/users/current/', {
         headers: {
-          session_id: sessionIdAtLogin || cookies["session_id"]
+          session_id: cookies["session_id"]
         },
         method: 'GET',
       })
@@ -39,7 +44,33 @@ const AuthProvider = ({ children }) => {
     return hashed;
   }
 
-  const isAuth = async () => {
+  const logout = async () => {
+    if (cookies["session_id"]) {
+     const response = await fetch('http://127.0.0.1:8080/logout', {
+      headers: {
+        session_id: cookies["session_id"],
+      },
+      method: 'GET',
+      })
+      if (response.ok) {
+        removeCookie("session_id")
+        removeCookie("is_auth")
+        setCurrentUser(undefined)
+        setIsAuth(false)
+        navigate('/')
+      } else {
+        console.log("ログアウトに失敗しました")
+      }
+    }
+  }
+
+  const setCookie = (name, value) => {
+    defaultSetCookie(name, value, {
+      path: '/' 
+    })
+  }
+
+  const updateIsAuth = async () => {
     const response = await fetch('http://127.0.0.1:8080/isauth', {
       headers: {
         session_id: cookies["session_id"],
@@ -52,30 +83,6 @@ const AuthProvider = ({ children }) => {
     } else {
       return false
     }
-  }
-
-  const logout = async () => {
-    if (sessionIdAtLogin || cookies["session_id"]) {
-     const response = await fetch('http://127.0.0.1:8080/logout', {
-      headers: {
-        session_id: sessionIdAtLogin || cookies["session_id"],//あとはテストして！！！
-      },
-      method: 'GET',
-      })
-      if (response.ok) {
-        removeCookie("session_id")
-        setSessionIdAtLogin(undefined)
-        navigate('/')
-      } else {
-        console.log("ログアウトに失敗しました")
-      }
-    }
-  }
-
-  const setCookie = (name, value) => {
-    defaultSetCookie(name, value, {
-      path: '/' 
-    })
   }
 
   const validateConfirmPassword = (value, password) => {
@@ -119,7 +126,7 @@ const AuthProvider = ({ children }) => {
     isAuth,
     logout,
     setCookie,
-    setSessionIdAtLogin,
+    setIsAuth,
     validateConfirmPassword,
     validateEmail,
     validateName,
