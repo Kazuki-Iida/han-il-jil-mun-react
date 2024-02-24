@@ -4,7 +4,7 @@ import { useAuth } from "./contexts/AuthContext"
 
 const Register = () => {
   const navigate = useNavigate()
-  const { getCurrentUser, hashPassword, setCookie, setSessionIdAtLogin, validateConfirmPassword, validateEmail, validateName, validatePassword } = useAuth()
+  const { hashPassword, setCookie, setIsAuth, setSessionIdAtLogin, validateConfirmPassword, validateEmail, validateName, validatePassword } = useAuth()
   const [warnigBlank, setWarnigBlank] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -98,8 +98,9 @@ const Register = () => {
       const res = await response.json()
       setCookie("session_id", res.session_id)
       setSessionIdAtLogin(res.session_id)
-      getCurrentUser()
-      navigate('/')
+      setCookie("is_auth", 'yes')//こっちはcookieに保存するコード
+      // setIsAuth(true)
+      window.location.href = "/";
     } else if (response.status == 400) {
       const error = await response.text()
       error.includes("duplicate email")

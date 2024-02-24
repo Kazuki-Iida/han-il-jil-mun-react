@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from "./contexts/AuthContext"
 
-const Login = () => {
+const CreatePost = () => {
   const navigate = useNavigate();
-  const { hashPassword, setIsAuth, setCookie, validateEmail, validatePassword } = useAuth()
+  const { hashPassword, setCookie, validateEmail, validatePassword } = useAuth()
   const [warnigBlank, setWarnigBlank] = useState(false)
 
   const [formData, setFormData] = useState({
@@ -66,7 +66,6 @@ const Login = () => {
   }
   // ログイン直後にログイン画面に行けてしまうエラーあり。sessionIdAtLoginあたりに問題あり
   const sendForm = async () => {
-    console.log('あ')
     const response = await fetch('http://127.0.0.1:8080/login', {
       method: 'POST',
       headers:{'Content-Type': 'application/json'},
@@ -79,8 +78,6 @@ const Login = () => {
       const res = await response.json()
       // sessionStorage.setItem("session_id", res.session_id);//こっちはセッションストレージに保存するコード
       setCookie("session_id", res.session_id)//こっちはcookieに保存するコード
-      setCookie("is_auth", 'yes')//こっちはcookieに保存するコード
-      // setIsAuth(true)
       window.location.href = "/";
     } else if (response.status == 401) {
       setValidationMessage({
@@ -138,4 +135,4 @@ const Login = () => {
   )
 }
 
-export default Login;
+export default CreatePost

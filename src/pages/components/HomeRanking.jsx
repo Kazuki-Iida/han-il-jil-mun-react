@@ -2,7 +2,8 @@ const HomeRanking = () => {
   return (
     <>
       <div className="home-ranking">
-        <h1>Ranking</h1>
+        <div className="home-ranking-container">
+        </div>
       </div>
     </>
   )

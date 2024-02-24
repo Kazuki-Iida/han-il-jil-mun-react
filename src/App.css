@@ -74,16 +74,26 @@ body {
 
 .home-index {
   margin: 10px;
-  border: 2px solid #999;
+  background-color: #fff;
   border-radius: 20px;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
   grid-column: 1;
+}
+
+.home-index-container {
+  /* margin: 30px; */
 }
 
 .home-ranking {
   margin: 10px;
-  border: 2px solid #999;
+  background-color: #fff;
   border-radius: 20px;
+  box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.15);
   grid-column: 2;
+}
+
+.home-ranking-container {
+  height: 700px;
 }
 
 .input-text {
@@ -129,11 +139,14 @@ body {
 }
 
 .post-container {
-  margin: 5px 10px 5px 10px;
-  border: 2px solid #999;
-  border-radius: 20px;
+  margin: 0 10px;
+  border-bottom: 1px solid #999;
   display: grid;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr 2fr 1fr;
+}
+
+.post-footer {
+  grid-row: 3 / 4; 
 }
 
 .post-title {
